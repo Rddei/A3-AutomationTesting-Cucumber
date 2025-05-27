@@ -1,13 +1,13 @@
-package org.A3Automation.runners; // Sesuaikan dengan package Anda
+package org.A3Automation.runners;
 
 import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 import org.junit.runner.RunWith;
 
-@RunWith(Cucumber.class) // Menggunakan JUnit 4 runner untuk Cucumber
+@RunWith(Cucumber.class)
 @CucumberOptions(
-        features = "src/test/resources/features",
-        glue = "org.A3Automation.stepdefinitions", // **PENTING: Sesuaikan dengan package step definitions Anda**
+        features = "src/test/resources/features",      // Path ke direktori .feature files
+        glue = "org.A3Automation.stepdefinitions",   // Path ke paket tempat Step Definitions dan Hooks berada
         plugin = {
                 "pretty",
                 "html:target/cucumber-reports/cucumber-report.html",
@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
                 "junit:target/cucumber-reports/cucumber.xml"
         },
         monochrome = true
-        // tags = "@SmokeTest" // Opsional
+        // tags = "@namatag" // Opsional: Untuk menjalankan skenario dengan tag tertentu
 )
 public class TestRunner {
 }
