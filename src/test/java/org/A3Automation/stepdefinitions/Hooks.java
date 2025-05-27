@@ -5,8 +5,10 @@ import io.cucumber.java.Before;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-// import org.openqa.selenium.chrome.ChromeOptions; // Aktifkan jika butuh options
-import java.util.concurrent.TimeUnit; // Pastikan import ini ada
+import org.openqa.selenium.chrome.ChromeOptions; // Import ChromeOptions
+import java.util.HashMap; // Import HashMap
+import java.util.Map; // Import Map
+import java.util.concurrent.TimeUnit;
 
 public class Hooks {
 
@@ -16,25 +18,49 @@ public class Hooks {
     public void setUp() {
         WebDriverManager.chromedriver().setup(); // Setup ChromeDriver
 
-        // --- Opsional: Konfigurasi ChromeOptions ---
-        // ChromeOptions options = new ChromeOptions();
-        // options.addArguments("--headless"); // Jalankan tanpa membuka UI browser (untuk CI/CD)
-        // options.addArguments("--disable-gpu");
-        // options.addArguments("--window-size=1920,1080");
-        // options.addArguments("--no-sandbox"); // Beberapa lingkungan CI mungkin memerlukan ini
-        // options.addArguments("--disable-dev-shm-usage"); // Beberapa lingkungan CI mungkin memerlukan ini
-        // driver = new ChromeDriver(options); // Gunakan ini jika options diaktifkan
+        ChromeOptions options = new ChromeOptions();
 
-        driver = new ChromeDriver(); // Gunakan ini jika tanpa options
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS); // Tunggu implisit
-        driver.manage().window().maximize(); // Maksimalkan jendela browser
-        System.out.println("WebDriver berhasil diinisialisasi.");
+        // Opsi untuk menonaktifkan fitur "Save password" dan terkait "Password Manager"
+        Map<String, Object> prefs = new HashMap<String, Object>();
+        prefs.put("credentials_enable_service", false); // Menonaktifkan layanan kredensial (simpan password)
+        prefs.put("profile.password_manager_enabled", false); // Menonaktifkan password manager bawaan
+
+        // Opsi untuk menonaktifkan deteksi kebocoran kata sandi (ini yang kemungkinan besar Anda butuhkan)
+        // Pada versi Chrome yang lebih baru, ini adalah preferensi yang relevan
+        prefs.put("profile.password_manager_leak_detection", false);
+        // Alternatif lain yang kadang disebut, bisa dicoba jika di atas tidak cukup
+        // prefs.put("signin.password_manager_enabled", false);
+
+        options.setExperimentalOption("prefs", prefs);
+
+        // Opsi tambahan yang sering digunakan untuk "membersihkan" sesi browser otomatis
+        options.addArguments("--start-maximized"); // Memulai browser dalam keadaan maximize
+        options.addArguments("--disable-extensions"); // Menonaktifkan ekstensi
+        options.addArguments("--disable-infobars"); // Menonaktifkan infobar seperti "Chrome is being controlled..." (mungkin sudah usang di versi baru)
+        options.addArguments("--disable-notifications"); // Menonaktifkan notifikasi browser
+        options.addArguments("--disable-popup-blocking"); // Menonaktifkan pemblokiran pop-up
+
+        // Beberapa orang juga menggunakan argumen ini untuk menonaktifkan fitur sinkronisasi atau layanan yang tidak perlu
+        // options.addArguments("--disable-sync");
+        // options.addArguments("--disable-translate");
+
+        // Untuk menghindari peringatan CDP, jika masih muncul dan mengganggu,
+        // Anda bisa mencoba menambahkan dependensi selenium-devtools-vXXX seperti yang disarankan log,
+        // atau terkadang opsi berikut bisa membantu (tapi bisa membatasi fungsionalitas DevTools)
+        // options.setCapability("goog:loggingPrefs", Map.of("devtools", "OFF")); // Ini mungkin tidak menghilangkan semua warning CDP
+
+
+        driver = new ChromeDriver(options); // Inisialisasi driver DENGAN options yang sudah diatur
+
+        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+        driver.manage().window().maximize(); // Baris ini mungkin tidak perlu jika sudah ada --start-maximized
+        System.out.println("WebDriver berhasil diinisialisasi dengan custom options.");
     }
 
     @After
     public void tearDown() {
         if (driver != null) {
-            driver.quit(); // Tutup semua jendela browser dan akhiri sesi WebDriver
+            driver.quit();
             System.out.println("WebDriver berhasil ditutup.");
         }
     }
